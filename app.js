@@ -1,0 +1,196 @@
+const { createClient } = supabase;
+
+const appState = {
+  supabase: null,
+  user: null,
+  currentNovel: null,
+  currentChapters: [],
+};
+
+const config = window.supabaseConfig || {
+  url: '',
+  anonKey: '',
+};
+
+function isConfigured() {
+  return Boolean(config.url && config.url !== 'https://TU-PROYECTO.supabase.co' && config.anonKey && config.anonKey !== 'TU_ANON_KEY_PUBLICA');
+}
+
+function setStatus(message, type = 'info') {
+  const status = document.getElementById('auth-status');
+  if (!status) return;
+  status.textContent = message;
+  status.dataset.type = type;
+}
+
+function showAuthForms(visible) {
+  const forms = document.querySelectorAll('[data-auth-panel]');
+  forms.forEach((el) => {
+    el.hidden = !visible;
+  });
+}
+
+function renderUserState() {
+  const authBox = document.getElementById('auth-box');
+  const userInfo = document.getElementById('user-info');
+  if (!authBox || !userInfo) return;
+
+  if (!appState.user) {
+    authBox.hidden = false;
+    userInfo.hidden = true;
+    return;
+  }
+
+  authBox.hidden = true;
+  userInfo.hidden = false;
+  document.getElementById('user-name').textContent = appState.user.email || 'Autor';
+}
+
+async function initSupabase() {
+  if (!isConfigured()) {
+    setStatus('Configura tus claves de Supabase en config.js antes de continuar.', 'warning');
+    return;
+  }
+
+  appState.supabase = createClient(config.url, config.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true },
+  });
+
+  const { data: { session }, error } = await appState.supabase.auth.getSession();
+  if (error) {
+    console.error('Error mirando sesión', error);
+    return;
+  }
+
+  appState.user = session?.user || null;
+  renderUserState();
+  setStatus(session ? 'Sesión activa' : 'Lista para iniciar sesión', session ? 'success' : 'info');
+}
+
+async function handleSignUp(event) {
+  event.preventDefault();
+  if (!appState.supabase || !isConfigured()) return;
+
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+
+  if (!email || password.length < 6) {
+    setStatus('Introduce un email válido y una contraseña con al menos 6 caracteres.', 'warning');
+    return;
+  }
+
+  const { data, error } = await appState.supabase.auth.signUp({ email, password });
+  if (error) {
+    setStatus(error.message, 'error');
+    return;
+  }
+
+  appState.user = data?.user || null;
+  renderUserState();
+  setStatus('Registro correcto. Revisa tu correo para confirmar la cuenta.', 'success');
+}
+
+async function handleSignIn(event) {
+  event.preventDefault();
+  if (!appState.supabase || !isConfigured()) return;
+
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+
+  const { data, error } = await appState.supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    setStatus(error.message, 'error');
+    return;
+  }
+
+  appState.user = data?.user || null;
+  renderUserState();
+  setStatus('Sesión iniciada correctamente.', 'success');
+}
+
+async function handleSignOut() {
+  if (!appState.supabase) return;
+  const { error } = await appState.supabase.auth.signOut();
+  if (error) {
+    setStatus(error.message, 'error');
+    return;
+  }
+
+  appState.user = null;
+  renderUserState();
+  setStatus('Sesión cerrada.', 'info');
+}
+
+async function loadPublicNovels() {
+  if (!appState.supabase) return;
+
+  const { data, error } = await appState.supabase
+    .from('novels')
+    .select('*')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('No se pudieron cargar las novelas:', error);
+    return;
+  }
+
+  const grid = document.getElementById('novelGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  data.forEach((novel) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="cover-card cc${(Math.abs(novel.title.length) % 4) + 1}">${novel.title}</div>
+      <div class="card-body">
+        <div class="meta-row"><span>${novel.genre || 'General'}</span><span>${novel.status || 'Publicado'}</span></div>
+        <span class="tag">Obra publicada</span>
+        <h3>${novel.title}</h3>
+        <p>${(novel.synopsis || 'Sin sinopsis disponible todavía.').slice(0, 120)}${(novel.synopsis || '').length > 120 ? '…' : ''}</p>
+        <div class="card-actions">
+          <div class="reaction"><span>❤ 0</span><span>💬 0</span></div>
+          <a href="capitulos.html?novel=${novel.id}" style="font-weight:800; color: var(--primary-dark);">Leer</a>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function loadLatestChapters() {
+  if (!appState.supabase) return;
+  const { data, error } = await appState.supabase
+    .from('chapters')
+    .select('*')
+    .eq('status', 'published')
+    .order('chapter_number', { ascending: true })
+    .limit(3);
+
+  if (error || !data) return;
+  const list = document.getElementById('latest-chapters');
+  if (!list) return;
+  list.innerHTML = data.map((chapter) => `
+    <div class="feature-box">
+      <div class="icon">📖</div>
+      <h3>Capítulo ${chapter.chapter_number}</h3>
+      <p>${chapter.title || 'Nuevo capítulo'} · ${chapter.content ? chapter.content.slice(0, 100) : 'Disponible en la lectura completa.'}</p>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const signupForm = document.getElementById('signup-form');
+  const signinForm = document.getElementById('signin-form');
+  const logoutButton = document.getElementById('logout-button');
+
+  if (signupForm) signupForm.addEventListener('submit', handleSignUp);
+  if (signinForm) signinForm.addEventListener('submit', handleSignIn);
+  if (logoutButton) logoutButton.addEventListener('click', handleSignOut);
+
+  initSupabase();
+  loadPublicNovels();
+  loadLatestChapters();
+});
