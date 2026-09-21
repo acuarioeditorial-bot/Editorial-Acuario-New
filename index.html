@@ -1,117 +1,814 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Editorial Acuario: descubre novelas independientes y comparte tus propias historias.">
-  <title>Editorial Acuario | Historias que vuelan</title>
-  <style>
-    :root {
-      --ink: #20202c;
-      --muted: #737383;
-      --cream: #fffaf3;
-      --white: #ffffff;
-      --purple: #6d4aff;
-      --purple-dark: #4b2bc7;
-      --pink: #ff7e9f;
-      --line: #eee9e3;
-      --shadow: 0 18px 50px rgba(49, 37, 91, .10);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; color: var(--ink); background: var(--cream); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
-    a { color: inherit; text-decoration: none; }
-    button, input, select { font: inherit; }
-    .container { width: min(1160px, calc(100% - 40px)); margin: auto; }
-    header { position: sticky; top: 0; z-index: 5; background: rgba(255,250,243,.94); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-    .nav { min-height: 76px; display: flex; align-items: center; gap: 28px; }
-    .logo { display: flex; align-items: center; gap: 10px; font-family: Georgia, serif; font-size: 1.35rem; font-weight: 700; margin-right: auto; }
-    .logo-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px 12px 12px 3px; color: white; background: linear-gradient(135deg, var(--purple), var(--pink)); font-size: 1.2rem; }
-    .nav-links { display: flex; gap: 24px; color: var(--muted); font-size: .94rem; }
-    .nav-links a:hover { color: var(--purple); }
-    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; padding: 12px 18px; color: white; background: var(--purple); font-weight: 700; cursor: pointer; box-shadow: 0 8px 18px rgba(109,74,255,.22); transition: .2s; }
-    .button:hover { background: var(--purple-dark); transform: translateY(-1px); }
-    .button.secondary { color: var(--purple-dark); background: #eeeaff; box-shadow: none; }
-    .hero { position: relative; overflow: hidden; padding: 88px 0 72px; }
-    .hero::after { content: ''; position: absolute; width: 420px; height: 420px; right: -120px; top: -120px; border-radius: 50%; background: #f6d8e6; opacity: .55; z-index: -1; }
-    .hero-content { max-width: 700px; }
-    .eyebrow { color: var(--purple); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-    h1, h2, h3 { font-family: Georgia, serif; }
-    h1 { max-width: 720px; margin: 14px 0 18px; font-size: clamp(3rem, 7vw, 5.7rem); line-height: .98; letter-spacing: -.06em; }
-    h1 span { color: var(--purple); }
-    .hero p { max-width: 610px; color: var(--muted); font-size: 1.12rem; line-height: 1.7; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-    .section { padding: 65px 0; }
-    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
-    .section-heading h2 { margin: 5px 0 0; font-size: clamp(1.8rem, 4vw, 2.7rem); }
-    .section-heading p { color: var(--muted); margin: 0; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 25px; }
-    .search { position: relative; flex: 1 1 280px; }
-    .search input, .toolbar select { width: 100%; padding: 13px 16px; border: 1px solid var(--line); border-radius: 12px; outline: 0; color: var(--ink); background: var(--white); }
-    .search input:focus, .toolbar select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px #e8e2ff; }
-    .toolbar select { width: auto; min-width: 190px; }
-    .genres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
-    .genre { padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--white); cursor: pointer; }
-    .genre.active, .genre:hover { color: var(--purple-dark); border-color: #c9beff; background: #eeeaff; }
-    .novel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-    .novel-card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--white); box-shadow: 0 5px 20px rgba(49,37,91,.04); transition: .2s; }
-    .novel-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
-    .cover { display: grid; place-items: end start; height: 190px; padding: 20px; color: white; font-family: Georgia, serif; font-size: 1.6rem; line-height: 1.05; }
-    .cover.one { background: linear-gradient(135deg, #2e396e, #ad668d); } .cover.two { background: linear-gradient(135deg, #be5b46, #f3c276); } .cover.three { background: linear-gradient(135deg, #17776c, #9dd6ad); } .cover.four { background: linear-gradient(135deg, #35294b, #9e85ca); }
-    .novel-info { padding: 18px; } .novel-info h3 { margin: 0 0 4px; font-size: 1.25rem; } .author, .novel-info p { color: var(--muted); font-size: .9rem; } .novel-info p { margin: 12px 0 0; line-height: 1.5; }
-    .tag { display: inline-block; margin-top: 14px; padding: 5px 9px; border-radius: 6px; color: var(--purple-dark); background: #f0edff; font-size: .76rem; font-weight: 700; }
-    .empty { display: none; padding: 35px; border: 1px dashed #d8d0ff; border-radius: 16px; color: var(--muted); text-align: center; }
-    .author-banner { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 40px; border-radius: 24px; color: white; background: linear-gradient(120deg, #403080, #755be0); }
-    .author-banner h2 { margin: 0 0 8px; font-size: 2rem; } .author-banner p { max-width: 600px; margin: 0; color: #e9e4ff; }
-    .author-banner .button { color: var(--purple-dark); background: white; box-shadow: none; white-space: nowrap; }
-    footer { padding: 28px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
-    .modal { position: fixed; inset: 0; z-index: 10; display: none; place-items: center; padding: 20px; background: rgba(25,20,42,.55); }
-    .modal.open { display: grid; } .modal-box { width: min(540px, 100%); padding: 30px; border-radius: 20px; background: var(--white); box-shadow: var(--shadow); } .modal-top { display: flex; justify-content: space-between; align-items: start; } .modal h2 { margin: 0; } .close { border: 0; color: var(--muted); background: none; font-size: 1.5rem; cursor: pointer; }
-    form label { display: block; margin-top: 16px; color: var(--muted); font-size: .85rem; font-weight: 700; } form input, form textarea, form select { width: 100%; margin-top: 6px; padding: 11px; border: 1px solid var(--line); border-radius: 9px; } form textarea { min-height: 90px; resize: vertical; } form .button { width: 100%; margin-top: 20px; }
-    @media (max-width: 760px) { .nav-links { display: none; } .hero { padding-top: 58px; } .novel-grid { grid-template-columns: 1fr; } .author-banner { align-items: start; flex-direction: column; padding: 28px; } .section-heading { align-items: start; flex-direction: column; } }
-  </style>
-</head>
-<body>
-  <header>
-    <nav class="container nav" aria-label="Navegación principal">
-      <a class="logo" href="#inicio"><span class="logo-mark">✦</span> Editorial Acuario</a>
-      <div class="nav-links"><a href="#novelas">Explorar novelas</a><a href="#generos">Géneros</a><a href="#autores">Para autores</a></div>
-      <button class="button" data-open-modal>Publicar mi novela</button>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Editorial Acuario: descubre obras, apoya a autores independientes y encuentra historias accesibles para toda la comunidad."
+    />
+    <title>Editorial Acuario | Historias para todos</title>
+    <style>
+      :root {
+        --bg: #f7f4ff;
+        --panel: #ffffff;
+        --panel-2: #f2eeff;
+        --ink: #1f1b2d;
+        --muted: #5e5b70;
+        --line: #e9e2ff;
+        --primary: #684df0;
+        --primary-dark: #4e36d4;
+        --primary-soft: #efebff;
+        --pink: #ff7fa2;
+        --teal: #39a7a0;
+        --gold: #f4c76d;
+        --success: #1ea97a;
+        --danger: #dc5a68;
+        --shadow: 0 20px 55px rgba(81, 66, 181, 0.12);
+        --radius: 22px;
+      }
 
-  <main id="inicio">
-    <section class="hero"><div class="container hero-content">
-      <div class="eyebrow">Un hogar para nuevas historias</div>
-      <h1>Tu imaginación merece <span>un lugar.</span></h1>
-      <p>Descubre novelas independientes, conoce nuevas voces y comparte esa historia que llevas tiempo escribiendo.</p>
-      <div class="hero-actions"><a class="button" href="#novelas">Explorar novelas ↓</a><button class="button secondary" data-open-modal>Quiero publicar</button></div>
-    </div></section>
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #f7f4ff 0%, #fffdfd 100%);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+      img { max-width: 100%; display: block; }
+      a { color: inherit; text-decoration: none; }
+      button, input, select { font: inherit; }
+      .container {
+        width: min(1180px, calc(100% - 32px));
+        margin-inline: auto;
+      }
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.03em; }
+      h1 { font-size: clamp(3rem, 6vw, 6rem); line-height: .96; margin: 0 0 16px; }
+      h2 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.08; margin: 0 0 12px; }
+      h3 { font-size: 1.4rem; margin: 0 0 10px; }
+      p { margin: 0; color: var(--muted); }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 20px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--primary);
+        color: white;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(104, 77, 240, 0.25);
+        transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        background: var(--primary-dark);
+      }
+      .btn.secondary {
+        background: #fff;
+        color: var(--primary-dark);
+        border: 1px solid var(--line);
+        box-shadow: none;
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        box-shadow: none;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(14px);
+        background: rgba(247, 244, 255, 0.9);
+        border-bottom: 1px solid rgba(104, 77, 240, 0.08);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 82px;
+        gap: 18px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 900;
+        font-size: 1.2rem;
+      }
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px 14px 14px 6px;
+        background: linear-gradient(135deg, var(--primary), var(--pink));
+        color: white;
+        box-shadow: 0 12px 24px rgba(104, 77, 240, 0.25);
+        font-size: 1.2rem;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      @media (max-width: 760px) {
+        .nav-links { display: none; }
+      }
+      .hero {
+        position: relative;
+        padding: 88px 0 46px;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        right: -150px;
+        top: -80px;
+        width: 430px;
+        height: 430px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,127,162,0.25), rgba(255,127,162,0));
+        pointer-events: none;
+      }
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 30px;
+        align-items: center;
+      }
+      .hero-copy { max-width: 690px; }
+      .hero-copy .subtitle {
+        font-size: 1.1rem;
+        max-width: 620px;
+        margin-bottom: 28px;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+      .mini-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 28px;
+      }
+      .stat {
+        min-width: 120px;
+      }
+      .stat strong {
+        display: block;
+        font-size: 1.7rem;
+        color: var(--ink);
+      }
+      .profile-card {
+        position: relative;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(180deg, #ffffff, #fbf9ff);
+        box-shadow: var(--shadow);
+      }
+      .profile-card .badge {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .cover-stack {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .cover {
+        padding: 20px 18px;
+        border-radius: 20px;
+        color: white;
+        font-family: Georgia, serif;
+        font-size: 1.6rem;
+        line-height: 1.06;
+        min-height: 140px;
+        display: flex;
+        align-items: end;
+      }
+      .c1 { background: linear-gradient(135deg, #2c355a, #a55bb6); }
+      .c2 { background: linear-gradient(135deg, #0f7d81, #4ec7b6); }
+      .c3 { background: linear-gradient(135deg, #c76b52, #f1c36d); }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .pill {
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      section { padding: 54px 0; }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: end;
+        margin-bottom: 22px;
+      }
+      .section-head p { max-width: 620px; }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .search-wrap {
+        position: relative;
+        flex: 1 1 260px;
+      }
+      .search-wrap input,
+      .toolbar select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        color: var(--ink);
+        outline: none;
+      }
+      .search-wrap input:focus,
+      .toolbar select:focus {
+        border-color: rgba(104, 77, 240, 0.6);
+        box-shadow: 0 0 0 4px rgba(104, 77, 240, 0.08);
+      }
+      .genres {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0 26px;
+      }
+      .genre-btn {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--muted);
+        padding: 9px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .genre-btn.active, .genre-btn:hover {
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        border-color: rgba(104, 77, 240, 0.2);
+      }
+      .novel-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(220px, 1fr));
+        gap: 22px;
+      }
+      .card {
+        overflow: hidden;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: white;
+        box-shadow: 0 8px 24px rgba(23, 21, 35, 0.03);
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+      }
+      .cover-card {
+        min-height: 200px;
+        padding: 22px;
+        display: flex;
+        align-items: end;
+        font-family: Georgia, serif;
+        color: white;
+        font-size: 1.5rem;
+        line-height: 1.08;
+      }
+      .cc1 { background: linear-gradient(135deg, #2b355b, #875fcb); }
+      .cc2 { background: linear-gradient(135deg, #164d4d, #55bdae); }
+      .cc3 { background: linear-gradient(135deg, #b45d41, #f0be72); }
+      .cc4 { background: linear-gradient(135deg, #31264f, #aa8ae0); }
+      .card-body { padding: 18px 18px 20px; }
+      .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin-bottom: 8px;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        padding: 7px 9px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+      .card p {
+        font-size: 0.96rem;
+        margin-top: 10px;
+      }
+      .card-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 18px;
+        gap: 12px;
+      }
+      .reaction {
+        display: inline-flex;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      .reaction span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 9px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #faf9ff;
+      }
+      .empty {
+        display: none;
+        margin-top: 18px;
+        padding: 20px;
+        border: 1px dashed rgba(104, 77, 240, 0.4);
+        border-radius: 18px;
+        background: #faf8ff;
+        color: var(--muted);
+        text-align: center;
+      }
+      .features { background: linear-gradient(180deg, #fff, #f9f7ff); }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+        gap: 18px;
+      }
+      .feature-box {
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: white;
+      }
+      .feature-box .icon {
+        width: 50px;
+        height: 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        font-size: 1.5rem;
+        margin-bottom: 16px;
+      }
+      .support-grid {
+        display: grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 22px;
+      }
+      .support-tile,
+      .info-panel {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: white;
+        overflow: hidden;
+      }
+      .support-tile {
+        padding: 28px;
+      }
+      .donate-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .amount {
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 12px;
+        font-weight: 700;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .amount.active {
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        border-color: rgba(104,77,240,0.2);
+      }
+      .info-panel {
+        padding: 28px;
+      }
+      .benefits {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .benefits li {
+        list-style: none;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .benefits li::before {
+        content: "✓";
+        color: var(--success);
+        font-weight: 900;
+      }
+      .cta-box {
+        padding: 28px;
+        border-radius: 26px;
+        color: white;
+        background: linear-gradient(135deg, #31274d 0%, #6651e5 100%);
+      }
+      .cta-box .buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+      footer {
+        padding: 30px 0 40px;
+        border-top: 1px solid var(--line);
+        background: rgba(255,255,255,0.5);
+      }
+      .foot {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        color: var(--muted);
+      }
+      @media (max-width: 980px) {
+        .hero .wrap,
+        .support-grid,
+        .feature-grid,
+        .novel-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hero .wrap { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 680px) {
+        .novel-grid,
+        .feature-grid,
+        .support-grid { grid-template-columns: 1fr; }
+        .section-head { flex-direction: column; align-items: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="container nav" aria-label="Navegación principal">
+        <a class="brand" href="#inicio" aria-label="Editorial Acuario inicio">
+          <span class="brand-mark">✦</span>
+          Editorial Acuario
+        </a>
+        <div class="nav-links">
+          <a href="#novelas">Novelas</a>
+          <a href="#accesibilidad">Accesibilidad</a>
+          <a href="#autores">Autores</a>
+          <a href="#apoyo">Apoya</a>
+        </div>
+        <a class="btn" href="#autores">Publicar mi novela</a>
+      </nav>
+    </header>
 
-    <section class="section" id="novelas"><div class="container">
-      <div class="section-heading"><div><div class="eyebrow">Biblioteca abierta</div><h2>Historias para perderse</h2></div><p id="result-count">4 novelas encontradas</p></div>
-      <div class="toolbar"><div class="search"><input id="search" type="search" placeholder="Buscar por título o autor..." aria-label="Buscar novelas"></div><select id="sort" aria-label="Ordenar novelas"><option value="recent">Más recientes</option><option value="title">Ordenar por título</option></select></div>
-      <div class="genres" id="generos"><button class="genre active" data-genre="Todos">Todos</button><button class="genre" data-genre="Romance">Romance</button><button class="genre" data-genre="Fantasía">Fantasía</button><button class="genre" data-genre="Misterio">Misterio</button><button class="genre" data-genre="Ciencia ficción">Ciencia ficción</button></div>
-      <div class="novel-grid" id="novel-grid">
-        <article class="novel-card" data-title="Donde terminan las estrellas" data-author="Valentina Ruiz" data-genre="Romance" data-order="4"><div class="cover one">Donde terminan<br>las estrellas</div><div class="novel-info"><h3>Donde terminan las estrellas</h3><div class="author">Por Valentina Ruiz</div><span class="tag">Romance</span><p>Dos caminos que se cruzan cuando ambos creían haberlo perdido todo.</p></div></article>
-        <article class="novel-card" data-title="El jardín de las sombras" data-author="Mateo Soler" data-genre="Misterio" data-order="3"><div class="cover two">El jardín de<br>las sombras</div><div class="novel-info"><h3>El jardín de las sombras</h3><div class="author">Por Mateo Soler</div><span class="tag">Misterio</span><p>Una casa abandonada guarda secretos que alguien quiere mantener enterrados.</p></div></article>
-        <article class="novel-card" data-title="La ciudad de cristal" data-author="Luna Ferrer" data-genre="Fantasía" data-order="2"><div class="cover three">La ciudad<br>de cristal</div><div class="novel-info"><h3>La ciudad de cristal</h3><div class="author">Por Luna Ferrer</div><span class="tag">Fantasía</span><p>En una ciudad imposible, una joven descubre el poder de su propia voz.</p></div></article>
-        <article class="novel-card" data-title="Órbita cero" data-author="Nicolás Vega" data-genre="Ciencia ficción" data-order="1"><div class="cover four">Órbita<br>cero</div><div class="novel-info"><h3>Órbita cero</h3><div class="author">Por Nicolás Vega</div><span class="tag">Ciencia ficción</span><p>La última tripulación humana recibe una señal desde un planeta olvidado.</p></div></article>
+    <main id="inicio">
+      <section class="hero">
+        <div class="container wrap">
+          <div class="hero-copy">
+            <div class="eyebrow">Mini editorial · comunidades lectoras</div>
+            <h1>Historias que<br />merecen <span style="color: var(--primary);">volar.</span></h1>
+            <p class="subtitle">
+              Editorial Acuario conecta a lectores con autores independientes, comparte novelas con
+              valor editorial y crea una comunidad accesible, inclusiva y activa.
+            </p>
+            <div class="cta-row">
+              <a class="btn" href="#novelas">Descubrir novelas</a>
+              <a class="btn secondary" href="#apoyo">Apoya a un autor</a>
+            </div>
+            <div class="mini-stats" aria-label="Métricas de la plataforma">
+              <div class="stat"><strong>120+</strong><span>obras en revisión</span></div>
+              <div class="stat"><strong>24k</strong><span>lectores activos</span></div>
+              <div class="stat"><strong>8.4/10</strong><span>valoración media</span></div>
+            </div>
+          </div>
+
+          <div class="profile-card" aria-label="Novedades destacadas">
+            <span class="badge">Novedades</span>
+            <div class="cover-stack">
+              <div class="cover c1">Donde terminan<br />las estrellas</div>
+              <div class="cover c2">La ciudad<br />de cristal</div>
+              <div class="cover c3">Órbita<br />cero</div>
+            </div>
+            <div class="pills">
+              <span class="pill">Romance</span>
+              <span class="pill">Fantasía</span>
+              <span class="pill">Misterio</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="novelas">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Catálogo editorial</div>
+              <h2>Descubre historias con voz propia</h2>
+            </div>
+            <p>Busca por título, autor o género y encuentra la novela que encaje contigo.</p>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <input id="searchInput" type="search" placeholder="Buscar novela o autor..." aria-label="Buscar novela o autor" />
+            </div>
+            <select id="sortSelect" aria-label="Ordenar por">
+              <option value="recent">Más recientes</option>
+              <option value="title">Título</option>
+              <option value="rating">Valoración</option>
+            </select>
+          </div>
+
+          <div class="genres" id="genreFilters" aria-label="Filtrar por género">
+            <button class="genre-btn active" data-genre="Todos">Todos</button>
+            <button class="genre-btn" data-genre="Romance">Romance</button>
+            <button class="genre-btn" data-genre="Fantasía">Fantasía</button>
+            <button class="genre-btn" data-genre="Misterio">Misterio</button>
+            <button class="genre-btn" data-genre="Ciencia ficción">Ciencia ficción</button>
+          </div>
+
+          <div id="novelGrid" class="novel-grid" aria-live="polite">
+            <article class="card" data-title="Donde terminan las estrellas" data-author="Valentina Ruiz" data-genre="Romance" data-rating="9.4">
+              <div class="cover-card cc1">Donde terminan<br />las estrellas</div>
+              <div class="card-body">
+                <div class="meta-row"><span>Valentina Ruiz</span><span>Romance</span></div>
+                <span class="tag">Novedad</span>
+                <h3>Donde terminan las estrellas</h3>
+                <p>Dos caminos se cruzan cuando ambos creen haber perdido la última oportunidad de ser felices.</p>
+                <div class="card-actions">
+                  <div class="reaction"><span>❤ 1.2k</span><span>💬 328</span></div>
+                  <span style="font-weight:800; color: var(--primary-dark);">9.4/10</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="card" data-title="El jardín de las sombras" data-author="Mateo Soler" data-genre="Misterio" data-rating="8.9">
+              <div class="cover-card cc2">El jardín de<br />las sombras</div>
+              <div class="card-body">
+                <div class="meta-row"><span>Mateo Soler</span><span>Misterio</span></div>
+                <span class="tag">Popular</span>
+                <h3>El jardín de las sombras</h3>
+                <p>Una casa abandonada guarda secretos peligrosos, y una familia entera quiere silenciarlos.</p>
+                <div class="card-actions">
+                  <div class="reaction"><span>❤ 890</span><span>💬 214</span></div>
+                  <span style="font-weight:800; color: var(--primary-dark);">8.9/10</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="card" data-title="La ciudad de cristal" data-author="Luna Ferrer" data-genre="Fantasía" data-rating="9.7">
+              <div class="cover-card cc3">La ciudad<br />de cristal</div>
+              <div class="card-body">
+                <div class="meta-row"><span>Luna Ferrer</span><span>Fantasía</span></div>
+                <span class="tag">Destacada</span>
+                <h3>La ciudad de cristal</h3>
+                <p>Una joven descubre que la voz que la hace existir puede destruir o salvar un reino entero.</p>
+                <div class="card-actions">
+                  <div class="reaction"><span>❤ 1.5k</span><span>💬 401</span></div>
+                  <span style="font-weight:800; color: var(--primary-dark);">9.7/10</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="card" data-title="Órbita cero" data-author="Nicolás Vega" data-genre="Ciencia ficción" data-rating="8.6">
+              <div class="cover-card cc4">Órbita<br />cero</div>
+              <div class="card-body">
+                <div class="meta-row"><span>Nicolás Vega</span><span>Ciencia ficción</span></div>
+                <span class="tag">Futuro</span>
+                <h3>Órbita cero</h3>
+                <p>La última tripulación humana recibe una señal desde un planeta que nadie había registrado jamás.</p>
+                <div class="card-actions">
+                  <div class="reaction"><span>❤ 740</span><span>💬 182</span></div>
+                  <span style="font-weight:800; color: var(--primary-dark);">8.6/10</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div id="emptyState" class="empty">No encontramos obras con esos criterios. Prueba otra búsqueda o cambia el género.</div>
+        </div>
+      </section>
+
+      <section class="features" id="accesibilidad">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Accesibilidad</div>
+              <h2>Una editorial pensada para todas las personas</h2>
+            </div>
+            <p>La comunidad debe poder leer, escuchar y participar sin barreras.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-box">
+              <div class="icon">🔊</div>
+              <h3>Audiolibros</h3>
+              <p>Selección de obras con audio narrado, transcripciones y versiones para escucha accesible.</p>
+            </article>
+            <article class="feature-box">
+              <div class="icon">📘</div>
+              <h3>EPUB accesible</h3>
+              <p>Textos compatibles con lectores de pantalla, lectura adaptativa y navegación por capítulos.</p>
+            </article>
+            <article class="feature-box">
+              <div class="icon">♿</div>
+              <h3>Braille / bajo demanda</h3>
+              <p>Solicitudes y producción para lectores con discapacidad visual, siguiendo un modelo realista y humano.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="apoyo">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Apoya al autor</div>
+              <h2>Haz crecer nuevas voces</h2>
+            </div>
+            <p>Las donaciones deben ir directamente al autor, mientras la editorial puede ganar con ventas y servicios claros.</p>
+          </div>
+
+          <div class="support-grid">
+            <div class="support-tile">
+              <h3>Apoya una novela</h3>
+              <p>Tu ayuda ayuda a que los autores sigan escribiendo, revisando y publicando.</p>
+              <div class="donate-box" aria-label="Importes de donación">
+                <button class="amount active" type="button">5€</button>
+                <button class="amount" type="button">10€</button>
+                <button class="amount" type="button">20€</button>
+                <button class="amount" type="button">50€</button>
+              </div>
+              <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn" type="button">Donar al autor</button>
+                <button class="btn ghost" type="button">Ver contrato</button>
+              </div>
+            </div>
+
+            <aside class="info-panel">
+              <div class="eyebrow" style="margin-bottom: 10px;">Modelo sugerido</div>
+              <h3>La ganancia de la editorial</h3>
+              <ul class="benefits">
+                <li>Ventas de ebooks y edición digital</li>
+                <li>Impresión bajo demanda y distribución</li>
+                <li>Servicios opcionales editoriales</li>
+                <li>Contratos justos para autores</li>
+                <li>Selección de obras destacadas</li>
+              </ul>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="autores">
+        <div class="container">
+          <div class="cta-box">
+            <div class="eyebrow" style="background: rgba(255,255,255,0.12); color: white;">Para escritores independientes</div>
+            <h2 style="color: white; margin-top: 8px;">¿Tienes una historia que merece ser leída?</h2>
+            <p style="color: rgba(255,255,255,0.85); max-width: 720px; margin-top: 12px;">
+              Únete a Editorial Acuario para publicar tu novela, recibir valoraciones de lectores,
+              mejorar tu presencia y llegar a una comunidad que apoye historias con alma.
+            </p>
+            <div class="buttons">
+              <a class="btn secondary" href="#">Subir mi novela</a>
+              <a class="btn ghost" href="#" style="color: white; border-color: rgba(255,255,255,0.35);">Ver requisitos</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container foot">
+        <span>© 2026 Editorial Acuario</span>
+        <span>Historias accesibles · apoyo real a autores · comunidad lectora</span>
       </div>
-      <div class="empty" id="empty">No encontramos novelas con esos criterios. Prueba con otra búsqueda.</div>
-    </div></section>
+    </footer>
 
-    <section class="section" id="autores"><div class="container"><div class="author-banner"><div><div class="eyebrow" style="color:#d9d0ff">Tu próximo capítulo</div><h2>¿Tienes una historia que contar?</h2><p>Publica tu novela, crea tu perfil de autor y encuentra lectores que están buscando una voz como la tuya.</p></div><button class="button" data-open-modal>Subir mi novela ↗</button></div></div></section>
-  </main>
-  <footer><div class="container">© 2026 Editorial Acuario · Un espacio para escritores independientes.</div></footer>
+    <script>
+      const searchInput = document.getElementById('searchInput');
+      const sortSelect = document.getElementById('sortSelect');
+      const cards = [...document.querySelectorAll('.card')];
+      const genreButtons = [...document.querySelectorAll('.genre-btn')];
+      const emptyState = document.getElementById('emptyState');
+      const novelGrid = document.getElementById('novelGrid');
 
-  <div class="modal" id="upload-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-box"><div class="modal-top"><div><div class="eyebrow">Para autores</div><h2 id="modal-title">Presenta tu novela</h2></div><button class="close" data-close-modal aria-label="Cerrar">×</button></div><form id="upload-form"><label>Tu nombre<input required name="author" placeholder="Ej. Ana García"></label><label>Título de la novela<input required name="title" placeholder="Ej. La casa azul"></label><label>Género<select required name="genre"><option value="">Selecciona un género</option><option>Romance</option><option>Fantasía</option><option>Misterio</option><option>Ciencia ficción</option></select></label><label>Sinopsis<textarea required name="synopsis" placeholder="Cuéntanos brevemente de qué trata..."></textarea></label><label>Archivo de la novela<input required type="file" accept=".pdf,.doc,.docx"></label><button class="button" type="submit">Enviar para revisión</button></form></div></div>
-  <script>
-    const cards = [...document.querySelectorAll('.novel-card')];
-    const search = document.querySelector('#search'); const sort = document.querySelector('#sort'); const empty = document.querySelector('#empty'); const count = document.querySelector('#result-count'); let activeGenre = 'Todos';
-    function filterNovels() { const term = search.value.toLowerCase().trim(); const visible = cards.filter(card => { const matchesText = (card.dataset.title + ' ' + card.dataset.author).toLowerCase().includes(term); const matchesGenre = activeGenre === 'Todos' || card.dataset.genre === activeGenre; card.hidden = !(matchesText && matchesGenre); return matchesText && matchesGenre; }); cards.sort((a,b) => sort.value === 'title' ? a.dataset.title.localeCompare(b.dataset.title) : b.dataset.order - a.dataset.order).forEach(card => document.querySelector('#novel-grid').appendChild(card)); count.textContent = `${visible.length} novela${visible.length === 1 ? '' : 's'} encontrada${visible.length === 1 ? '' : 's'}`; empty.style.display = visible.length ? 'none' : 'block'; }
-    search.addEventListener('input', filterNovels); sort.addEventListener('change', filterNovels); document.querySelectorAll('.genre').forEach(button => button.addEventListener('click', () => { document.querySelectorAll('.genre').forEach(b => b.classList.remove('active')); button.classList.add('active'); activeGenre = button.dataset.genre; filterNovels(); }));
-    const modal = document.querySelector('#upload-modal'); document.querySelectorAll('[data-open-modal]').forEach(b => b.addEventListener('click', () => modal.classList.add('open'))); document.querySelector('[data-close-modal]').addEventListener('click', () => modal.classList.remove('open')); modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); }); document.querySelector('#upload-form').addEventListener('submit', e => { e.preventDefault(); alert('¡Gracias! Tu propuesta quedó preparada para revisión. Para recibir archivos de forma real necesitamos conectar un backend.'); modal.classList.remove('open'); e.target.reset(); });
-  </script>
-</body>
+      let activeGenre = 'Todos';
+
+      function applyFilters() {
+        const term = searchInput.value.toLowerCase().trim();
+
+        const visibleCards = cards.filter(card => {
+          const title = card.dataset.title.toLowerCase();
+          const author = card.dataset.author.toLowerCase();
+          const genre = card.dataset.genre;
+          const matchesSearch = title.includes(term) || author.includes(term) || term === '';
+          const matchesGenre = activeGenre === 'Todos' || genre === activeGenre;
+          return matchesSearch && matchesGenre;
+        });
+
+        cards.forEach(card => {
+          card.style.display = visibleCards.includes(card) ? 'block' : 'none';
+        });
+
+        emptyState.style.display = visibleCards.length ? 'none' : 'block';
+      }
+
+      function sortCards() {
+        const sortMode = sortSelect.value;
+        const sorted = [...cards].sort((a, b) => {
+          if (sortMode === 'rating') {
+            return Number(b.dataset.rating) - Number(a.dataset.rating);
+          }
+          if (sortMode === 'title') {
+            return a.dataset.title.localeCompare(b.dataset.title);
+          }
+          return 0;
+        });
+
+        sorted.forEach(card => novelGrid.appendChild(card));
+      }
+
+      searchInput.addEventListener('input', () => {
+        applyFilters();
+        sortCards();
+      });
+
+      sortSelect.addEventListener('change', () => {
+        sortCards();
+        applyFilters();
+      });
+
+      genreButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          genreButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          activeGenre = button.dataset.genre;
+          applyFilters();
+        });
+      });
+
+      document.querySelectorAll('.amount').forEach(button => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('.amount').forEach(b => b.classList.remove('active'));
+          button.classList.add('active');
+        });
+      });
+
+      sortCards();
+      applyFilters();
+    </script>
+  </body>
 </html>
