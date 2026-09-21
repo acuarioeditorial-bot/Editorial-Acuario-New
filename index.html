@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editorial Acuario</title>
+  <meta name="description" content="Un espacio para escritores que quieren volar su imaginación y darse a conocer al mundo.">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --paper: #fffdf8;
+      --line: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 1.25rem 6vw;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      color: var(--accent-dark);
+      font-size: 1.35rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    nav a:not(.brand) {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 5rem 6vw; }
+
+    .hero { max-width: 720px; }
+
+    h1 {
+      margin: 0 0 1rem;
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      line-height: 1.05;
+    }
+
+    .hero p { color: var(--muted); font-size: 1.2rem; }
+
+    .button {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: .75rem 1.2rem;
+      border-radius: .5rem;
+      color: #fff;
+      background: var(--accent);
+      text-decoration: none;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+    }
+
+    .button:hover { background: var(--accent-dark); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 4rem;
+    }
+
+    .card {
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      background: #fff;
+    }
+
+    .card h2 { margin-top: 0; color: var(--accent-dark); font-size: 1.25rem; }
+    .card p { color: var(--muted); }
+
+    footer {
+      padding: 2rem 6vw;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav aria-label="Navegación principal">
+      <a class="brand" href="index.html">Editorial Acuario</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p>Bienvenidos a Editorial Acuario</p>
+      <h1>Historias que nacen para volar.</h1>
+      <p>
+        Un espacio para escritores que quieren compartir su imaginación,
+        encontrar su voz y darse a conocer al mundo.
+      </p>
+      <a class="button" href="#contacto">Conoce nuestro proyecto</a>
+    </section>
+
+    <section class="cards" aria-label="Información de la editorial">
+      <article class="card">
+        <h2>Imaginación</h2>
+        <p>Celebramos las ideas originales y las historias que dejan huella.</p>
+      </article>
+      <article class="card">
+        <h2>Comunidad</h2>
+        <p>Conectamos a autores con lectores que buscan nuevas experiencias.</p>
+      </article>
+      <article class="card" id="contacto">
+        <h2>Participa</h2>
+        <p>Muy pronto podrás conocer nuestras convocatorias y publicaciones.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Editorial Acuario · Todos los derechos reservados
+  </footer>
+</body>
+</html>
