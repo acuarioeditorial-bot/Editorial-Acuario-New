@@ -4,7 +4,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Entrar | Editorial Acuario</title>
-  <style>body{margin:0;background:#f7f4ff;color:#211d31;font-family:system-ui,sans-serif}.wrap{width:min(460px,calc(100% - 32px));margin:8vh auto}.card{background:#fff;border:1px solid #e9e2ff;border-radius:22px;padding:28px;box-shadow:0 20px 55px #5142b51f}h1{font-family:Georgia,serif;font-size:2.5rem}label{display:block;margin:14px 0 6px;font-weight:700}input{width:100%;padding:13px;border:1px solid #e9e2ff;border-radius:10px;box-sizing:border-box}button{margin-top:18px;padding:13px 17px;border:0;border-radius:10px;background:#684df0;color:#fff;font-weight:800;cursor:pointer}#auth-status{margin-top:16px;color:#5e5b70}.back{color:#684df0;font-weight:700}</style>
+  <style>
+    body{margin:0;background:#f7f4ff;color:#211d31;font-family:system-ui,sans-serif}.wrap{width:min(460px,calc(100% - 32px));margin:8vh auto}.card{background:#fff;border:1px solid #e9e2ff;border-radius:22px;padding:28px;box-shadow:0 20px 55px #5142b51f}h1{font-family:Georgia,serif;font-size:2.5rem}.back{color:#684df0;font-weight:700}label{display:block;margin:14px 0 6px;font-weight:700}.password-wrap{position:relative}.password-wrap input{padding-right:82px}input{width:100%;padding:13px;border:1px solid #e9e2ff;border-radius:10px;box-sizing:border-box;font:inherit}.toggle-password{position:absolute;right:5px;top:5px;margin:0;padding:8px 9px;background:#f1edff;color:#684df0;font-size:.8rem}.submit{margin-top:18px;padding:13px 17px;border:0;border-radius:10px;background:#684df0;color:#fff;font-weight:800;cursor:pointer}.submit:disabled{opacity:.6;cursor:wait}hr{border:0;border-top:1px solid #eee8ff;margin:28px 0}#auth-status{margin-top:16px;color:#5e5b70}#auth-status[data-type=error]{color:#b42318}#auth-status[data-type=success]{color:#16794c}#auth-status[data-type=warning]{color:#9a6700}
+  </style>
 </head>
-<body><main class="wrap"><a class="back" href="index.html">← Editorial Acuario</a><section class="card"><h1>Tu espacio de autor</h1><p>Regístrate o entra para preparar tus novelas y capítulos.</p><div id="auth-box"><form id="signin-form"><h2>Iniciar sesión</h2><label for="signin-email">Email</label><input id="signin-email" type="email" required><label for="signin-password">Contraseña</label><input id="signin-password" type="password" required><button type="submit">Entrar</button></form><hr><form id="signup-form"><h2>Crear cuenta</h2><label for="signup-email">Email</label><input id="signup-email" type="email" required><label for="signup-password">Contraseña</label><input id="signup-password" type="password" minlength="6" required><button type="submit">Registrarme</button></form></div><div id="user-info" hidden>Sesión iniciada como <strong id="user-name"></strong><br><button id="logout-button">Cerrar sesión</button></div><div id="auth-status" role="status"></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script></body>
+<body>
+  <main class="wrap">
+    <a class="back" href="index.html">← Editorial Acuario</a>
+    <section class="card">
+      <h1>Tu espacio de autor</h1>
+      <p>Regístrate o entra para preparar tus novelas y capítulos.</p>
+      <div id="auth-box">
+        <form id="signin-form" novalidate>
+          <h2>Iniciar sesión</h2>
+          <label for="signin-email">Email</label>
+          <input id="signin-email" type="email" autocomplete="email" required>
+          <label for="signin-password">Contraseña</label>
+          <div class="password-wrap"><input id="signin-password" type="password" autocomplete="current-password" required><button class="toggle-password" type="button" data-password="signin-password">Mostrar</button></div>
+          <button class="submit" type="submit">Entrar</button>
+        </form>
+        <hr>
+        <form id="signup-form" novalidate>
+          <h2>Crear cuenta</h2>
+          <label for="signup-email">Email</label>
+          <input id="signup-email" type="email" autocomplete="email" required>
+          <label for="signup-password">Contraseña</label>
+          <div class="password-wrap"><input id="signup-password" type="password" autocomplete="new-password" minlength="6" required><button class="toggle-password" type="button" data-password="signup-password">Mostrar</button></div>
+          <button class="submit" type="submit">Registrarme</button>
+        </form>
+      </div>
+      <div id="user-info" hidden>Sesión iniciada como <strong id="user-name"></strong><br><button class="submit" id="logout-button" type="button">Cerrar sesión</button></div>
+      <div id="auth-status" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.querySelectorAll('[data-password]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.password);
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        button.textContent = showing ? 'Mostrar' : 'Ocultar';
+      });
+    });
+  </script>
+</body>
 </html>
