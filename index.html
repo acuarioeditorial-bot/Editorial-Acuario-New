@@ -400,6 +400,35 @@
         font-size: 1.5rem;
         margin-bottom: 16px;
       }
+      .access-form {
+        margin-top: 28px;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: white;
+      }
+      .access-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .access-field {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink);
+        outline: none;
+      }
+      textarea.access-field {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .access-field:focus {
+        border-color: rgba(104, 77, 240, 0.6);
+        box-shadow: 0 0 0 4px rgba(104, 77, 240, 0.08);
+      }
       .support-grid {
         display: grid;
         grid-template-columns: 1.2fr .8fr;
@@ -491,7 +520,8 @@
       @media (max-width: 680px) {
         .novel-grid,
         .feature-grid,
-        .support-grid { grid-template-columns: 1fr; }
+        .support-grid,
+        .access-row { grid-template-columns: 1fr; }
         .section-head { flex-direction: column; align-items: start; }
       }
     </style>
@@ -667,6 +697,26 @@
               <h3>Braille / bajo demanda</h3>
               <p>Solicitudes y producción para lectores con discapacidad visual, siguiendo un modelo realista y humano.</p>
             </article>
+          </div>
+
+          <div class="access-form" aria-label="Registro para accesibilidad">
+            <h3>Registrarse para accesibilidad</h3>
+            <p>Solicita apoyo, audiolibros, EPUB accesible o materiales adaptados.</p>
+            <form style="margin-top: 18px; display: grid; gap: 14px;">
+              <div class="access-row">
+                <input class="access-field" type="text" placeholder="Nombre completo" aria-label="Nombre completo" />
+                <input class="access-field" type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" />
+              </div>
+              <select class="access-field" aria-label="Necesidad de acceso">
+                <option>Necesidad de acceso</option>
+                <option>Audiolibro</option>
+                <option>EPUB accesible</option>
+                <option>Braille / formato adaptado</option>
+                <option>Otro</option>
+              </select>
+              <textarea class="access-field" placeholder="Cuéntanos qué necesitas" aria-label="Cuéntanos qué necesitas"></textarea>
+              <button class="btn" type="submit">Enviar solicitud</button>
+            </form>
           </div>
         </div>
       </section>
