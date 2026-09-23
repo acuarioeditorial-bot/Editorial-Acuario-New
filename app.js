@@ -46,6 +46,13 @@ function renderUserState() {
   document.getElementById('user-name').textContent = appState.user.email || 'Autor';
 }
 
+// Esta es la página real de retorno. Se calcula desde la página actual para
+// que funcione tanto en GitHub Pages como en un servidor local, incluyendo la
+// subcarpeta /Editorial-Acuario-New/.
+function getEmailRedirectUrl() {
+  return new URL('acceso.html', window.location.href).href;
+}
+
 async function initSupabase() {
   if (!isConfigured()) {
     setStatus('Configura tus claves de Supabase en config.js antes de continuar.', 'warning');
@@ -53,12 +60,25 @@ async function initSupabase() {
   }
 
   appState.supabase = createClient(config.url, config.anonKey, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  });
+
+  // Supabase procesa aquí los tokens que llegan en el enlace de confirmación.
+  // El listener evita que la página parezca fallar al volver desde el correo.
+  appState.supabase.auth.onAuthStateChange((event, session) => {
+    appState.user = session?.user || null;
+    renderUserState();
+
+    if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+      setStatus('Correo confirmado. Tu cuenta ya está activa.', 'success');
+      window.history.replaceState({}, document.title, getEmailRedirectUrl());
+    }
   });
 
   const { data: { session }, error } = await appState.supabase.auth.getSession();
   if (error) {
     console.error('Error mirando sesión', error);
+    setStatus('No se pudo comprobar la sesión. Recarga la página e inténtalo de nuevo.', 'error');
     return;
   }
 
@@ -73,21 +93,34 @@ async function handleSignUp(event) {
 
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
+  const submitButton = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
 
   if (!email || password.length < 6) {
     setStatus('Introduce un email válido y una contraseña con al menos 6 caracteres.', 'warning');
     return;
   }
 
-  const { data, error } = await appState.supabase.auth.signUp({ email, password });
+  if (submitButton) submitButton.disabled = true;
+  setStatus('Creando la cuenta y enviando el correo de confirmación…', 'info');
+
+  const { error } = await appState.supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: getEmailRedirectUrl(),
+    },
+  });
+
+  if (submitButton) submitButton.disabled = false;
+
   if (error) {
     setStatus(error.message, 'error');
     return;
   }
 
-  appState.user = data?.user || null;
+  appState.user = null;
   renderUserState();
-  setStatus('Registro correcto. Revisa tu correo para confirmar la cuenta.', 'success');
+  setStatus('Registro correcto. Revisa tu correo y pulsa el enlace para confirmar la cuenta.', 'success');
 }
 
 async function handleSignIn(event) {
