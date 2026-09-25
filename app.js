@@ -46,9 +46,6 @@ function renderUserState() {
   document.getElementById('user-name').textContent = appState.user.email || 'Autor';
 }
 
-// Esta es la página real de retorno. Se calcula desde la página actual para
-// que funcione tanto en GitHub Pages como en un servidor local, incluyendo la
-// subcarpeta /Editorial-Acuario-New/.
 function getEmailRedirectUrl() {
   return new URL('acceso.html', window.location.href).href;
 }
@@ -63,8 +60,6 @@ async function initSupabase() {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
 
-  // Supabase procesa aquí los tokens que llegan en el enlace de confirmación.
-  // El listener evita que la página parezca fallar al volver desde el correo.
   appState.supabase.auth.onAuthStateChange((event, session) => {
     appState.user = session?.user || null;
     renderUserState();
@@ -106,9 +101,7 @@ async function handleSignUp(event) {
   const { error } = await appState.supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: getEmailRedirectUrl(),
-    },
+    options: { emailRedirectTo: getEmailRedirectUrl() },
   });
 
   if (submitButton) submitButton.disabled = false;
@@ -129,7 +122,6 @@ async function handleSignIn(event) {
 
   const email = document.getElementById('signin-email').value.trim();
   const password = document.getElementById('signin-password').value;
-
   const { data, error } = await appState.supabase.auth.signInWithPassword({ email, password });
   if (error) {
     setStatus(error.message, 'error');
@@ -154,6 +146,50 @@ async function handleSignOut() {
   setStatus('Sesión cerrada.', 'info');
 }
 
+async function handleAccessibilityRequest(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submitButton = form.querySelector('button[type="submit"]');
+  const fields = form.querySelectorAll('input, select, textarea');
+  const [nameInput, emailInput] = fields;
+  const needInput = form.querySelector('select');
+  const messageInput = form.querySelector('textarea');
+  const name = nameInput?.value.trim() || '';
+  const email = emailInput?.value.trim() || '';
+  const need = needInput?.value || '';
+  const message = messageInput?.value.trim() || '';
+
+  if (!name || !email || !emailInput.checkValidity()) {
+    setStatus('Escribe tu nombre y un correo electrónico válido.', 'warning');
+    return;
+  }
+
+  if (!appState.supabase || !isConfigured()) {
+    setStatus('El formulario todavía no está conectado a Supabase.', 'error');
+    return;
+  }
+
+  if (submitButton) submitButton.disabled = true;
+  setStatus('Enviando tu solicitud…', 'info');
+
+  const { error } = await appState.supabase.from('access_requests').insert({
+    name,
+    email,
+    need: need || null,
+    message: message || null,
+  });
+
+  if (submitButton) submitButton.disabled = false;
+  if (error) {
+    console.error('No se pudo enviar la solicitud de accesibilidad:', error);
+    setStatus('No se pudo enviar. Ejecuta primero supabase/access_requests.sql en Supabase.', 'error');
+    return;
+  }
+
+  form.reset();
+  setStatus('Solicitud enviada correctamente. Te contactaremos por correo.', 'success');
+}
+
 async function loadPublicNovels() {
   if (!appState.supabase) return;
 
@@ -170,7 +206,6 @@ async function loadPublicNovels() {
 
   const grid = document.getElementById('novelGrid');
   if (!grid) return;
-
   grid.innerHTML = '';
 
   data.forEach((novel) => {
@@ -218,10 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const signupForm = document.getElementById('signup-form');
   const signinForm = document.getElementById('signin-form');
   const logoutButton = document.getElementById('logout-button');
+  const accessibilityForm = document.querySelector('.access-form form');
 
   if (signupForm) signupForm.addEventListener('submit', handleSignUp);
   if (signinForm) signinForm.addEventListener('submit', handleSignIn);
   if (logoutButton) logoutButton.addEventListener('click', handleSignOut);
+  if (accessibilityForm) accessibilityForm.addEventListener('submit', handleAccessibilityRequest);
 
   initSupabase();
   loadPublicNovels();
