@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panel de autor | Editorial Acuario</title>
+  <style>
+    :root { --bg:#f7f4ff; --ink:#211d31; --muted:#625d72; --line:#e9e2ff; --primary:#684df0; --primary-dark:#4e36d4; --success:#1ea97a; --danger:#d75a6b; --panel:#fff; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(180deg,#f7f4ff,#fff); color:var(--ink); font-family:system-ui,sans-serif; }
+    .container { width:min(1100px,calc(100% - 32px)); margin:0 auto; }
+    header { background:rgba(247,244,255,.94); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:10; }
+    nav { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { font-weight:900; font-size:1.2rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:12px 16px; border:none; border-radius:12px; background:var(--primary); color:#fff; font-weight:800; cursor:pointer; }
+    .btn.secondary { background:#fff; color:var(--primary-dark); border:1px solid var(--line); }
+    .panel { padding:48px 0; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:24px; box-shadow:0 12px 26px rgba(81,66,181,.06); }
+    h1,h2,h3 { margin:0 0 12px; font-family:Georgia,serif; }
+    form { display:grid; gap:12px; }
+    input, textarea, select { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; font:inherit; }
+    textarea { min-height:110px; resize:vertical; }
+    .status { min-height:24px; font-weight:700; }
+    .status.success { color:var(--success); }
+    .status.error { color:var(--danger); }
+    .novel-list { display:grid; gap:12px; }
+    .novel-item { border:1px solid var(--line); border-radius:16px; padding:16px; background:#faf9ff; }
+    .meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; color:var(--muted); font-size:.85rem; }
+    @media (max-width:760px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="container">
+      <div class="brand">Editorial Acuario · Autor</div>
+      <a class="btn secondary" href="index.html">Volver al inicio</a>
+    </nav>
+  </header>
+
+  <main class="panel">
+    <div class="container grid">
+      <section class="card">
+        <h1>Crear novela</h1>
+        <form id="novel-form">
+          <input name="title" type="text" placeholder="Título de la novela" required />
+          <input name="genre" type="text" placeholder="Género" required />
+          <input name="slug" type="text" placeholder="slug-unico (sin espacios)" required />
+          <textarea name="synopsis" placeholder="Sinopsis" required></textarea>
+          <input name="cover_path" type="text" placeholder="URL de portada (opcional)" />
+          <button class="btn" type="submit">Guardar novela</button>
+          <div id="novel-status" class="status" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Mis novelas</h2>
+        <div id="novel-list" class="novel-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    const { createClient } = supabase;
+    const config = window.supabaseConfig || { url: '', anonKey: '' };
+    const client = createClient(config.url, config.anonKey, { auth: { persistSession: true, autoRefreshToken: true } });
+    const status = document.getElementById('novel-status');
+    const list = document.getElementById('novel-list');
+
+    function setStatus(text, type = '') {
+      status.textContent = text;
+      status.className = `status ${type}`.trim();
+    }
+
+    async function requireUser() {
+      const { data: { session }, error } = await client.auth.getSession();
+      if (error || !session?.user) {
+        window.location.href = 'acceso.html';
+        return null;
+      }
+      return session.user;
+    }
+
+    async function loadMyNovels() {
+      const user = await requireUser();
+      if (!user) return;
+
+      const { data, error } = await client
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !data) {
+        list.innerHTML = '<div class="novel-item">No se encontró tu perfil aún.</div>';
+        return;
+      }
+
+      const { data: novels, error: novelsError } = await client
+        .from('novels')
+        .select('*')
+        .eq('author_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (novelsError) {
+        list.innerHTML = '<div class="novel-item">No se pudieron cargar tus novelas.</div>';
+        return;
+      }
+
+      if (!novels || novels.length === 0) {
+        list.innerHTML = '<div class="novel-item">Todavía no tienes novelas creadas.</div>';
+        return;
+      }
+
+      list.innerHTML = novels.map((novel) => `
+        <div class="novel-item">
+          <strong>${novel.title}</strong>
+          <div class="meta">
+            <span>Género: ${novel.genre}</span>
+            <span>Estado: ${novel.status}</span>
+            <span>Slug: ${novel.slug}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('novel-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const user = await requireUser();
+      if (!user) return;
+
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const payload = {
+        author_id: user.id,
+        title: formData.get('title').toString().trim(),
+        genre: formData.get('genre').toString().trim(),
+        slug: formData.get('slug').toString().trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
+        synopsis: formData.get('synopsis').toString().trim(),
+        cover_path: formData.get('cover_path').toString().trim() || null,
+        status: 'draft'
+      };
+
+      if (!payload.title || !payload.genre || !payload.slug || !payload.synopsis) {
+        setStatus('Completa el título, género, slug y sinopsis.', 'error');
+        return;
+      }
+
+      const { error } = await client.from('novels').insert(payload);
+      if (error) {
+        setStatus(error.message, 'error');
+        return;
+      }
+
+      form.reset();
+      setStatus('Novela guardada como borrador.', 'success');
+      loadMyNovels();
+    });
+
+    loadMyNovels();
+  </script>
+</body>
+</html>
