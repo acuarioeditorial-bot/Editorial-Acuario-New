@@ -77,7 +77,7 @@ async function initSupabase() {
   appState.supabase.auth.onAuthStateChange((event, session) => {
     appState.user = session?.user || null;
     renderUserState();
-    if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+    if (event === 'SIGNED_IN' && (window.location.hash.includes('access_token') || new URLSearchParams(window.location.search).has('code'))) {
       window.location.replace(getHomeUrl('confirmed'));
     }
   });
