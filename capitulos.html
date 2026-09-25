@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lectura | Editorial Acuario</title>
+<style>
+:root{--ink:#211d31;--muted:#625d72;--line:#e9e2ff;--primary:#684df0;--bg:#f7f4ff}*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,var(--bg),#fff);color:var(--ink);font-family:system-ui,sans-serif}.wrap{width:min(850px,calc(100% - 32px));margin:auto}header{padding:24px 0;border-bottom:1px solid var(--line)}a{color:var(--primary);font-weight:800;text-decoration:none}.page{padding:48px 0}.eyebrow{display:inline-block;padding:7px 12px;border-radius:99px;background:#efebff;color:#4e36d4;font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em}.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px;margin-top:22px;box-shadow:0 12px 26px #5142b50f}.chapter{border-top:1px solid var(--line);padding:28px 0}.chapter:first-child{border-top:0}.chapter h2{font:1.8rem Georgia,serif}.content{white-space:pre-wrap;line-height:1.85;color:#393348}.muted{color:var(--muted)}.error{color:#c43f55;font-weight:700}
+</style>
+</head>
+<body><header><div class="wrap"><a href="index.html">← Volver a Editorial Acuario</a></div></header>
+<main class="page"><div class="wrap"><span class="eyebrow">Lectura</span><section id="novel" class="card"><p class="muted">Cargando novela…</p></section><section id="chapters" class="card"><p class="muted">Cargando capítulos…</p></section></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script>
+const client=supabase.createClient(window.supabaseConfig.url,window.supabaseConfig.anonKey);const id=new URLSearchParams(location.search).get('novel');const novelBox=document.getElementById('novel'),chaptersBox=document.getElementById('chapters');
+function esc(value=''){const el=document.createElement('div');el.textContent=value;return el.innerHTML}
+async function load(){if(!id){novelBox.innerHTML='<p class="error">Falta identificar la novela.</p>';chaptersBox.innerHTML='';return}const novelResult=await client.from('novels').select('id,title,genre,synopsis').eq('id',id).eq('status','published').single();if(novelResult.error||!novelResult.data){novelBox.innerHTML='<p class="error">La novela no está disponible o todavía no ha sido publicada.</p>';chaptersBox.innerHTML='';return}const n=novelResult.data;novelBox.innerHTML=`<h1>${esc(n.title)}</h1><p class="muted">${esc(n.genre||'General')}</p><p>${esc(n.synopsis||'')}</p>`;const result=await client.from('chapters').select('id,title,chapter_number,content').eq('novel_id',id).eq('status','published').order('chapter_number',{ascending:true});if(result.error){chaptersBox.innerHTML='<p class="error">No se pudieron cargar los capítulos.</p>';return}if(!result.data.length){chaptersBox.innerHTML='<p class="muted">Esta novela todavía no tiene capítulos publicados.</p>';return}chaptersBox.innerHTML=result.data.map(c=>`<article class="chapter"><h2>Capítulo ${c.chapter_number}: ${esc(c.title)}</h2><div class="content">${esc(c.content)}</div></article>`).join('')}
+load();
+</script></body></html>
