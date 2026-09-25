@@ -7,32 +7,53 @@ const appState = {
   currentChapters: [],
 };
 
-const config = window.supabaseConfig || {
-  url: '',
-  anonKey: '',
-};
+const config = window.supabaseConfig || { url: '', anonKey: '' };
 
 function isConfigured() {
   return Boolean(config.url && config.url !== 'https://TU-PROYECTO.supabase.co' && config.anonKey && config.anonKey !== 'TU_ANON_KEY_PUBLICA');
 }
 
 function setStatus(message, type = 'info') {
-  const status = document.getElementById('auth-status');
+  const status = document.getElementById('auth-status') || document.getElementById('access-status');
   if (!status) return;
   status.textContent = message;
   status.dataset.type = type;
+  if (status.classList) status.className = `form-status ${type}`;
 }
 
-function showAuthForms(visible) {
-  const forms = document.querySelectorAll('[data-auth-panel]');
-  forms.forEach((el) => {
-    el.hidden = !visible;
-  });
+function getEmailRedirectUrl() {
+  return new URL('acceso.html', window.location.href).href;
+}
+
+function getUserLabel(user) {
+  return user?.email || 'Autor';
+}
+
+function getUserInitial(user) {
+  return (user?.email || 'A').trim().charAt(0).toUpperCase();
+}
+
+function renderHomeUserState() {
+  const accessLink = document.querySelector('header a.btn[href="acceso.html"]');
+  if (!accessLink) return;
+
+  if (!appState.user) {
+    accessLink.textContent = 'Iniciar sesión / Registrarse';
+    accessLink.href = 'acceso.html';
+    accessLink.removeAttribute('aria-label');
+    return;
+  }
+
+  accessLink.href = 'acceso.html';
+  accessLink.setAttribute('aria-label', `Mi cuenta: ${getUserLabel(appState.user)}`);
+  accessLink.innerHTML = `<span style="display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:#684df0;font-weight:900;margin-right:8px">${getUserInitial(appState.user)}</span><span>Mi cuenta</span>`;
 }
 
 function renderUserState() {
   const authBox = document.getElementById('auth-box');
   const userInfo = document.getElementById('user-info');
+  renderHomeUserState();
+
   if (!authBox || !userInfo) return;
 
   if (!appState.user) {
@@ -43,11 +64,8 @@ function renderUserState() {
 
   authBox.hidden = true;
   userInfo.hidden = false;
-  document.getElementById('user-name').textContent = appState.user.email || 'Autor';
-}
-
-function getEmailRedirectUrl() {
-  return new URL('acceso.html', window.location.href).href;
+  const userName = document.getElementById('user-name');
+  if (userName) userName.textContent = getUserLabel(appState.user);
 }
 
 async function initSupabase() {
@@ -105,7 +123,6 @@ async function handleSignUp(event) {
   });
 
   if (submitButton) submitButton.disabled = false;
-
   if (error) {
     setStatus(error.message, 'error');
     return;
@@ -163,7 +180,6 @@ async function handleAccessibilityRequest(event) {
     setStatus('Escribe tu nombre y un correo electrónico válido.', 'warning');
     return;
   }
-
   if (!appState.supabase || !isConfigured()) {
     setStatus('El formulario todavía no está conectado a Supabase.', 'error');
     return;
@@ -171,15 +187,9 @@ async function handleAccessibilityRequest(event) {
 
   if (submitButton) submitButton.disabled = true;
   setStatus('Enviando tu solicitud…', 'info');
-
-  const { error } = await appState.supabase.from('access_requests').insert({
-    name,
-    email,
-    need: need || null,
-    message: message || null,
-  });
-
+  const { error } = await appState.supabase.from('access_requests').insert({ name, email, need: need || null, message: message || null });
   if (submitButton) submitButton.disabled = false;
+
   if (error) {
     console.error('No se pudo enviar la solicitud de accesibilidad:', error);
     setStatus('No se pudo enviar. Ejecuta primero supabase/access_requests.sql en Supabase.', 'error');
@@ -192,61 +202,29 @@ async function handleAccessibilityRequest(event) {
 
 async function loadPublicNovels() {
   if (!appState.supabase) return;
-
-  const { data, error } = await appState.supabase
-    .from('novels')
-    .select('*')
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
-
+  const { data, error } = await appState.supabase.from('novels').select('*').eq('status', 'published').order('created_at', { ascending: false });
   if (error) {
     console.error('No se pudieron cargar las novelas:', error);
     return;
   }
-
   const grid = document.getElementById('novelGrid');
   if (!grid) return;
   grid.innerHTML = '';
-
   data.forEach((novel) => {
     const card = document.createElement('article');
     card.className = 'card';
-    card.innerHTML = `
-      <div class="cover-card cc${(Math.abs(novel.title.length) % 4) + 1}">${novel.title}</div>
-      <div class="card-body">
-        <div class="meta-row"><span>${novel.genre || 'General'}</span><span>${novel.status || 'Publicado'}</span></div>
-        <span class="tag">Obra publicada</span>
-        <h3>${novel.title}</h3>
-        <p>${(novel.synopsis || 'Sin sinopsis disponible todavía.').slice(0, 120)}${(novel.synopsis || '').length > 120 ? '…' : ''}</p>
-        <div class="card-actions">
-          <div class="reaction"><span>❤ 0</span><span>💬 0</span></div>
-          <a href="capitulos.html?novel=${novel.id}" style="font-weight:800; color: var(--primary-dark);">Leer</a>
-        </div>
-      </div>
-    `;
+    card.innerHTML = `<div class="cover-card cc${(Math.abs(novel.title.length) % 4) + 1}">${novel.title}</div><div class="card-body"><div class="meta-row"><span>${novel.genre || 'General'}</span><span>${novel.status || 'Publicado'}</span></div><span class="tag">Obra publicada</span><h3>${novel.title}</h3><p>${(novel.synopsis || 'Sin sinopsis disponible todavía.').slice(0, 120)}${(novel.synopsis || '').length > 120 ? '…' : ''}</p><div class="card-actions"><div class="reaction"><span>❤ 0</span><span>💬 0</span></div><a href="capitulos.html?novel=${novel.id}" style="font-weight:800; color: var(--primary-dark);">Leer</a></div></div>`;
     grid.appendChild(card);
   });
 }
 
 async function loadLatestChapters() {
   if (!appState.supabase) return;
-  const { data, error } = await appState.supabase
-    .from('chapters')
-    .select('*')
-    .eq('status', 'published')
-    .order('chapter_number', { ascending: true })
-    .limit(3);
-
+  const { data, error } = await appState.supabase.from('chapters').select('*').eq('status', 'published').order('chapter_number', { ascending: true }).limit(3);
   if (error || !data) return;
   const list = document.getElementById('latest-chapters');
   if (!list) return;
-  list.innerHTML = data.map((chapter) => `
-    <div class="feature-box">
-      <div class="icon">📖</div>
-      <h3>Capítulo ${chapter.chapter_number}</h3>
-      <p>${chapter.title || 'Nuevo capítulo'} · ${chapter.content ? chapter.content.slice(0, 100) : 'Disponible en la lectura completa.'}</p>
-    </div>
-  `).join('');
+  list.innerHTML = data.map((chapter) => `<div class="feature-box"><div class="icon">📖</div><h3>Capítulo ${chapter.chapter_number}</h3><p>${chapter.title || 'Nuevo capítulo'} · ${chapter.content ? chapter.content.slice(0, 100) : 'Disponible en la lectura completa.'}</p></div>`).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -260,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutButton) logoutButton.addEventListener('click', handleSignOut);
   if (accessibilityForm) accessibilityForm.addEventListener('submit', handleAccessibilityRequest);
 
+  renderUserState();
   initSupabase();
   loadPublicNovels();
   loadLatestChapters();
