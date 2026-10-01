@@ -13,6 +13,9 @@ create table public.profiles (
   bio text,
   avatar_url text,
   role text not null default 'author' check (role in ('author', 'editor', 'admin')),
+  theme text not null default 'light' check (theme in ('light', 'dark')),
+  email_notifications boolean not null default false,
+  public_profile boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -99,11 +102,14 @@ create index read_events_novel_idx on public.read_events(novel_id);
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, display_name, username)
+  insert into public.profiles (id, display_name, username, theme, email_notifications, public_profile)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
-    lower(regexp_replace(split_part(new.email, '@', 1), '[^a-zA-Z0-9_]', '', 'g'))
+    lower(regexp_replace(split_part(new.email, '@', 1), '[^a-zA-Z0-9_]', '', 'g')),
+    'light',
+    false,
+    true
   );
   return new;
 end;
