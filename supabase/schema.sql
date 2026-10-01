@@ -93,10 +93,42 @@ create table public.supports (
   created_at timestamptz not null default now()
 );
 
+create table public.chapters (
+  id uuid primary key default gen_random_uuid(),
+  novel_id uuid not null references public.novels(id) on delete cascade,
+  author_id uuid not null references public.profiles(id) on delete cascade,
+  chapter_number integer not null check (chapter_number > 0),
+  title text not null default 'Capítulo',
+  body text not null default '',
+  status text not null default 'published' check (status in ('draft', 'published')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (novel_id, chapter_number)
+);
+
+create table public.library (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  novel_id uuid not null references public.novels(id) on delete cascade,
+  status text not null default 'want_to_read' check (status in ('want_to_read', 'reading', 'finished')),
+  created_at timestamptz not null default now(),
+  primary key (user_id, novel_id)
+);
+
+create table public.follows (
+  follower_id uuid not null references public.profiles(id) on delete cascade,
+  author_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (follower_id, author_id),
+  check (follower_id <> author_id)
+);
+
 create index novels_status_idx on public.novels(status, created_at desc);
 create index novels_genre_idx on public.novels(genre);
 create index comments_novel_idx on public.comments(novel_id, created_at desc);
 create index read_events_novel_idx on public.read_events(novel_id);
+create index chapters_novel_idx on public.chapters(novel_id, chapter_number);
+create index library_user_idx on public.library(user_id, created_at desc);
+create index follows_author_idx on public.follows(author_id, created_at desc);
 
 -- Perfil automático para cada cuenta nueva.
 create or replace function public.handle_new_user()
@@ -142,6 +174,9 @@ alter table public.reactions enable row level security;
 alter table public.ratings enable row level security;
 alter table public.read_events enable row level security;
 alter table public.supports enable row level security;
+alter table public.chapters enable row level security;
+alter table public.library enable row level security;
+alter table public.follows enable row level security;
 
 create policy "perfiles visibles" on public.profiles for select using (true);
 create policy "editar propio perfil" on public.profiles for update using (auth.uid() = id);
@@ -157,6 +192,15 @@ create policy "usuarios reaccionan" on public.reactions for all using (user_id =
 create policy "usuarios valoran" on public.ratings for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "registrar lecturas" on public.read_events for insert with check (user_id is null or user_id = auth.uid());
 create policy "apoyos propios visibles" on public.supports for select using (supporter_id = auth.uid() or author_id = auth.uid());
+create policy "capitulos visibles" on public.chapters for select using (status = 'published' or author_id = auth.uid());
+create policy "autores crean capitulos" on public.chapters for insert with check (author_id = auth.uid());
+create policy "autores editan capitulos" on public.chapters for update using (author_id = auth.uid());
+create policy "autores eliminan capitulos" on public.chapters for delete using (author_id = auth.uid());
+create policy "biblioteca privada" on public.library for select using (user_id = auth.uid());
+create policy "guardar en biblioteca" on public.library for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "seguimientos visibles" on public.follows for select using (follower_id = auth.uid() or author_id = auth.uid());
+create policy "seguir autores" on public.follows for insert with check (follower_id = auth.uid());
+create policy "dejar de seguir" on public.follows for delete using (follower_id = auth.uid());
 
 -- Los archivos de manuscritos deben permanecer privados. Genera URLs firmadas desde el servidor.
 insert into storage.buckets (id, name, public) values ('covers', 'covers', true) on conflict (id) do nothing;
